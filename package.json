@@ -1,0 +1,14 @@
+{
+  "name": "jsbinary",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "hippospark@gmail.com",
+  "license": "See <LICENSE.md>",
+  "devDependencies": {
+    "mocha": "^8.3.2"
+  }
+}
