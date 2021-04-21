@@ -1,6 +1,10 @@
-// WASM 版本的 Int32 算术比 Javascript 的大概慢 100%，估计大部分时间被 JS->WASM 调用过程消耗。
+// 使用 WASM 实现无符号数的乘法、除法和取余计算。
+//
+// 注：
+// Javascript 调用 WASM 的方法并返回值的过程需要消耗额外的时间，所以对于简单的
+// 算术计算，直接使用 Javascript 的本身算术功能即可。
 
-const wasmHex = '0061736d01000000000c0664796c696e6b0000000000010f0360027f7f017f60000060017f017f030e0d010000000000000000020000000606017f0041000b07b4010f125f5f706f73745f696e7374616e746961746500000361646400010873756274726163740002086d756c7469706c7900030664697669646500040672656d61696e000503616e640006026f72000703786f720008036e6f7400090a6c6566745f7368696674000a0b72696768745f7368696674000b116c6f6769635f72696768745f7368696674000c0c5f5f64736f5f68616e646c650300185f5f7761736d5f6170706c795f646174615f72656c6f637300000a650d0300010b0700200020016a0b0700200020016b0b0700200020016c0b0700200020016e0b070020002001700b070020002001710b070020002001720b070020002001730b07002000417f730b070020002001740b070020002001750b070020002001760b';
+const wasmHex = '0061736d01000000000c0664796c696e6b0000000000010f0360027f7f017f60000060017f017f03121101000000000000000000000000020000000606017f0041000b078c0213125f5f706f73745f696e7374616e7469617465000003616464000108737562747261637400020c6d756c7469706c795f6c6f7700030d6d756c7469706c795f686967680004166d756c7469706c795f686967685f756e7369676e656400050664697669646500060f6469766964655f756e7369676e656400070a72656d61696e6465725f00081272656d61696e6465725f756e7369676e6564000903616e64000a026f72000b03786f72000c036e6f74000d0a6c6566745f7368696674000e0b72696768745f7368696674000f116c6f6769635f72696768745f736869667400100c5f5f64736f5f68616e646c650300185f5f7761736d5f6170706c795f646174615f72656c6f637300000a9701110300010b0700200020016a0b0700200020016b0b0700200020016c0b13002000ad2001ad4230864230877e422088a70b0d002001ad2000ad7e422088a70b0700200020016d0b0700200020016e0b0700200020016f0b070020002001700b070020002001710b070020002001720b070020002001730b07002000417f730b070020002001740b070020002001750b070020002001760b';
 
 // WebAssembly key concepts
 // https://developer.mozilla.org/en-US/docs/WebAssembly/Concepts#webassembly_key_concepts
@@ -30,8 +34,8 @@ let importObject = {
 
 let wasmLength = wasmHex.length / 2;
 let wasmBytes = new Int8Array(wasmLength);
-for(let idx=0; idx<wasmLength; idx++) {
-    wasmBytes[idx] = parseInt(wasmHex.substr(idx*2, 2), 16);
+for (let idx = 0; idx < wasmLength; idx++) {
+    wasmBytes[idx] = parseInt(wasmHex.substr(idx * 2, 2), 16);
 }
 
 // 异步加载 WASM
@@ -46,24 +50,28 @@ for(let idx=0; idx<wasmLength; idx++) {
 
 // 同步加载 WASM
 
-let md = new WebAssembly.Module(wasmBytes.buffer);
-let instance = new WebAssembly.Instance(md, importObject);
-let ep = instance.exports;
+let m = new WebAssembly.Module(wasmBytes.buffer);
+let instance = new WebAssembly.Instance(m, importObject);
+let e = instance.exports;
 
 // 导出方法
 const Int32Math = {
-    add: ep.add,
-    subtract: ep.subtract,
-    multiply: ep.multiply,
-    divide: ep.divide,
-    remain: ep.remain,
-    and: ep.and,
-    or: ep.or,
-    xor: ep.xor,
-    not: ep.not,
-    leftShift: ep.left_shift,
-    rightShift: ep.right_shift,
-    logicRightShift: ep.logic_right_shift
+    add: e.add,
+    subtract: e.subtract,
+    multiplyLow: e.multiply_low,
+    multiplyHigh: e.multiply_high,
+    multiplyHighUnsigned: e.multiply_high_unsigned,
+    divide: e.divide,
+    divideUnsigned: e.divide_unsigned,
+    remainder: e.remainder_,
+    remainderUnsigned: e.remainder_unsigned,
+    and: e.and,
+    or: e.or,
+    xor: e.xor,
+    not: e.not,
+    leftShift: e.left_shift,
+    rightShift: e.right_shift,
+    logicRightShift: e.logic_right_shift
 };
 
 module.exports = Int32Math;
