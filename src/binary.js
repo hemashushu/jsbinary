@@ -84,7 +84,7 @@ class Binary {
     }
 
     /**
-     * 复制一个 Binary 对象。
+     * 复制 Binary 对象。
      *
      * @param {*} binary
      * @returns
@@ -198,15 +198,6 @@ class Binary {
     }
 
     /**
-     * 更新数值
-     *
-     * @param {*} value Int32 数值
-     */
-    update(value) {
-        this.value = value | 0;
-    }
-
-    /**
      * 按位更新数值
      *
      * @param {*} offset 0-31
@@ -255,6 +246,34 @@ class Binary {
         for (let idx = 0; idx < length; idx++) {
             binary.setBit(idx, this.getBit(idx + offset));
         }
+    }
+
+    /**
+     * 更新数值
+     *
+     * @param {*} binary
+     */
+    update(binary) {
+        this.value = binary.value | 0;
+    }
+
+    /**
+     * 通过数值来更新数值
+     *
+     * @param {*} value Int32 数值
+     */
+    updateByValue(value) {
+        this.value = value | 0;
+    }
+
+    /**
+     * 复制 Binary 对象。
+     *
+     * @param {*} binary
+     * @returns
+     */
+    clone() {
+        return Binary.clone(this);
     }
 
     equals(other) {

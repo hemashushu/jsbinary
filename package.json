@@ -6,8 +6,16 @@
   "scripts": {
     "test": "mocha"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hemashushu/jsbinary.git"
+  },
   "author": "hippospark@gmail.com",
-  "license": "See <LICENSE.md>",
+  "license": "SEE LICENSE IN <LICENSE.md>",
+  "bugs": {
+    "url": "https://github.com/hemashushu/jsbinary/issues"
+  },
+  "homepage": "https://github.com/hemashushu/jsbinary",
   "devDependencies": {
     "mocha": "^8.3.2"
   }

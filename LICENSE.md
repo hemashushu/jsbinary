@@ -11,8 +11,7 @@ You may use and distribute this software free of charge without paying any fees,
 5. If you provide the author of this software with improvements (including patches or code, etc.), the copyright will belong to the author of this software.
 6. The author does not provide technical support and assumes no responsibility.
 
-Translated with www.DeepL.com/Translator (free version)
-
+- - -
 
 版权所有 (c) 2021 河马蜀黍 <Hippospark@gmail.com>，保留所有权利。
 
