@@ -200,12 +200,13 @@ class Binary {
     /**
      * 按位更新数值
      *
-     * @param {*} offset 0-31
+     * @param {*} offset 0-31，offset 是从最低位开始数的，比如 0b11110000，
+     *     最右边（最低位）的 0 的 offset 为 0，最左边（最高位）的 offset 为 7。
      * @param {*} value 0 或者 1
      */
     setBit(offset, value) {
         if (value === 0) {
-            this.value = this.value ^ bitMask[offset];
+            this.value = this.value & (~bitMask[offset]);
         } else {
             this.value = this.value | bitMask[offset];
         }
@@ -217,6 +218,8 @@ class Binary {
      * @param {*} binary
      * @param {*} offset 目标数值（即当前 Binary 对象数值的）偏移值，注意
      *     offset + binary.length 必须小于等于 this.length.
+     *     offset 是从最低位开始数的，比如 0b11110000，最右边（最低位）的 0 的
+     *     offset 为 0，最左边（最高位）的 offset 为 7。
      */
     setBits(binary, offset) {
         for (let idx = 0; idx < binary.length; idx++) {
@@ -227,11 +230,12 @@ class Binary {
     /**
      * 按位读取数值
      *
-     * @param {*} offset 0-31
+     * @param {*} offset 0-31，offset 是从最低位开始数的，比如 0b11110000，
+     *     最右边（最低位）的 0 的 offset 为 0，最左边（最高位）的 offset 为 7。
      * @returns 0 或者 1
      */
     getBit(offset) {
-        return ((this.value & bitMask[offset]) === bitMask[offset]) ? 1 : 0;
+        return (this.value & bitMask[offset]) === bitMask[offset] ? 1 : 0;
     }
 
     /**
@@ -239,6 +243,8 @@ class Binary {
      *
      * @param {*} offset 当前数值的偏移值，注意
      *     offset + length 必须小于等于 this.length.
+     *     offset 是从最低位开始数的，比如 0b11110000，最右边（最低位）的 0 的
+     *     offset 为 0，最左边（最高位）的 offset 为 7。
      * @param {*} length 需读取的长度（位）
      */
     getBits(offset, length) {
@@ -246,6 +252,7 @@ class Binary {
         for (let idx = 0; idx < length; idx++) {
             binary.setBit(idx, this.getBit(idx + offset));
         }
+        return binary;
     }
 
     /**
