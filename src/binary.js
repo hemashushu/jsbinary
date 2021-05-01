@@ -3,24 +3,30 @@ const Int32Math = require('../wasm/int32math');
 const MAX_BIT_WIDTH = 32;
 
 // 二进制数每位的数值
+// bitMark[n] = 2 ^ n
 const bitMask = new Array(MAX_BIT_WIDTH);
 
 for (let idx = 0; idx < MAX_BIT_WIDTH; idx++) {
-    bitMask[idx] = Math.pow(2, idx) | 0;
+    // Math.pow(2, idx) 跟 (2 ** idx) 结果相同
+    bitMask[idx] = (2 ** idx) | 0;
+}
+
+// 二进制数每个长度的最大值
+// bitWidthValue[0] = 1, bitWidthValue[3] = 1 + 2 + 4 + 8
+const bitWidthValue = new Array(MAX_BIT_WIDTH);
+
+bitWidthValue[0] = 1
+for(let idx=1;idx<MAX_BIT_WIDTH; idx++) {
+    bitWidthValue[idx] = (bitWidthValue[idx-1] + (2 ** idx)) | 0;
 }
 
 /**
  * 一个简单的二进制数据类型操作对象。最长支持 32 位二进制数。
  *
- * 注1：
- *
- * 为提高效率，本类的大部分方法都没有对参数（包括 value 和 length）的
+ * 注：
+ * 为提高效率，本类的大部分方法都没有对参数
  * 有效性进行检测，调用者必须自己保证参数的有效性。
  *
- * 注2：
- *
- * 如需对两个 Binary 对象作 “乘、除、余数” 算术运算或者 “算术右移”，必须
- * 保证操作数的位宽一致，且均为 32 位。
  */
 class Binary {
 
@@ -39,6 +45,8 @@ class Binary {
         // value 将作为无符号数（uint32_t）来处里，当传入的数字
         // 为负数时，将会转换到无符号数的范围，不过由于 JavaScript 缺少
         // 无符号数据类型，所以直接读取 value 时，仍然会获得负数。
+        // 当需要使用字符串表达 Binary 对象的数值时，尽量使用 toBinaryString()、toHexString() 以及
+        // toDecimalString() 方法，直接使用 value.toString() 未必能正确表达数值（因为有符号）。
         this.value = value | 0;
 
         // Binary 对象的位宽，范围从 1~32。
@@ -133,66 +141,79 @@ class Binary {
             left.bitWidth === right.bitWidth;
     }
 
-    static add(left, right) {
+    static add32(left, right) {
+        // 调用者必须确保两个操作数的位宽均为 32 位。
         return new Binary(left.value + right.value, left.bitWidth);
     }
 
-    static subtract(left, right) {
+    static subtract32(left, right) {
+        // 调用者必须确保两个操作数的位宽均为 32 位。
         return new Binary(left.value - right.value, left.bitWidth);
     }
 
-    static multiplyLow(left, right) {
+    static multiplyLow32(left, right) {
+        // 调用者必须确保两个操作数的位宽均为 32 位。
         let value = Int32Math.multiplyLow(left.value, right.value);
         return new Binary(value, left.bitWidth);
     }
 
-    static multiplyHigh(left, right) {
+    static multiplyHigh32(left, right) {
+        // 调用者必须确保两个操作数的位宽均为 32 位。
         let value = Int32Math.multiplyHigh(left.value, right.value);
         return new Binary(value, left.bitWidth);
     }
 
-    static multiplyHighUnsigned(left, right) {
+    static multiplyHighUnsigned32(left, right) {
+        // 调用者必须确保两个操作数的位宽均为 32 位。
         let value = Int32Math.multiplyHighUnsigned(left.value, right.value);
         return new Binary(value, left.bitWidth);
     }
 
-    static divide(left, right) {
+    static divide32(left, right) {
+        // 调用者必须确保两个操作数的位宽均为 32 位。
         let value = Int32Math.divide(left.value, right.value);
         return new Binary(value, left.bitWidth);
     }
 
-    static divideUnsigned(left, right) {
+    static divideUnsigned32(left, right) {
+        // 调用者必须确保两个操作数的位宽均为 32 位。
         let value = Int32Math.divideUnsigned(left.value, right.value);
         return new Binary(value, left.bitWidth);
     }
 
-    static remainder(left, right) {
+    static remainder32(left, right) {
+        // 调用者必须确保两个操作数的位宽均为 32 位。
         let value = Int32Math.remainder(left.value, right.value);
         return new Binary(value, left.bitWidth);
     }
 
-    static remainderUnsigned(left, right) {
+    static remainderUnsigned32(left, right) {
+        // 调用者必须确保两个操作数的位宽均为 32 位。
         let value = Int32Math.remainderUnsigned(left.value, right.value);
         return new Binary(value, left.bitWidth);
     }
 
     static and(left, right) {
         // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#bitwise_operators
-        return new Binary(left.value & right.value, left.bitWidth);
+        let value = (left.value & right.value) & bitWidthValue[left.bitWidth - 1];
+        return new Binary(value, left.bitWidth);
     }
 
     static or(left, right) {
-        return new Binary(left.value | right.value, left.bitWidth);
+        let value = (left.value | right.value) & bitWidthValue[left.bitWidth - 1];
+        return new Binary(value, left.bitWidth);
     }
 
     static nand(left, right) {
         // nand = not(and)
-        return new Binary(~(left.value & right.value), left.bitWidth);
+        let value = (~(left.value & right.value)) & bitWidthValue[left.bitWidth - 1];
+        return new Binary(value, left.bitWidth);
     }
 
     static nor(left, right) {
         // nor = not(or)
-        return new Binary(~(left.value | right.value), left.bitWidth);
+        let value = (~(left.value | right.value)) & bitWidthValue[left.bitWidth - 1];
+        return new Binary(value, left.bitWidth);
     }
 
     /**
@@ -207,7 +228,8 @@ class Binary {
         // 0	1	1
         // 1	0	1
         // 1	1	0
-        return new Binary(left.value ^ right.value, left.bitWidth);
+        let value = (left.value ^ right.value) & bitWidthValue[left.bitWidth - 1];
+        return new Binary(value, left.bitWidth);
     }
 
     /**
@@ -224,15 +246,18 @@ class Binary {
         // 0	1	0
         // 1	0	0
         // 1	1	1
-        return new Binary(~(left.value ^ right.value), left.bitWidth);
+        let value = (~(left.value ^ right.value)) & bitWidthValue[left.bitWidth - 1];
+        return new Binary(value, left.bitWidth);
     }
 
     static not(binary) {
-        return new Binary(~binary.value, binary.bitWidth);
+        let value = (~binary.value) & bitWidthValue[binary.bitWidth - 1];
+        return new Binary(value, binary.bitWidth);
     }
 
     static leftShift(binary, bitWidth) {
-        return new Binary(binary.value << bitWidth, binary.bitWidth);
+        let value = (binary.value << bitWidth) & bitWidthValue[binary.bitWidth - 1];
+        return new Binary(value, binary.bitWidth);
     }
 
     /**
@@ -244,10 +269,13 @@ class Binary {
      * @param {*} bitWidth 0-32
      * @returns
      */
-    static rightShift(binary, bitWidth) {
+    static rightShift32(binary, bitWidth) {
+        // 调用者必须确保操作数的位宽为 32 位
+
         // 001100...00 >> 2 = 000011...00
         // 110000...00 >> 2 = 111100...00
-        return new Binary(binary.value >> bitWidth, binary.bitWidth);
+        let value = binary.value >> bitWidth;
+        return new Binary(value, binary.bitWidth);
     }
 
     /**
@@ -261,7 +289,8 @@ class Binary {
     static logicRightShift(binary, bitWidth) {
         // 001100...00 >> 2 = 000011...00
         // 110000...00 >> 2 = 001100...00
-        return new Binary(binary.value >>> bitWidth, binary.bitWidth);
+        let value = (bitWidthValue[bitWidth - 1] & binary.value) >>> bitWidth
+        return new Binary(value, binary.bitWidth);
     }
 
     /**
@@ -379,8 +408,9 @@ class Binary {
      * @returns
      */
     toBinaryString() {
-        if (this.value >= 0) {
-            return this.value.toString(2);
+        let value = this.value & bitWidthValue[this.bitWidth - 1];
+        if (value >= 0) {
+            return value.toString(2);
         } else {
             let buffer = [];
             for (let idx = this.bitWidth - 1; idx >= 0; idx--) {
@@ -397,23 +427,24 @@ class Binary {
      * @returns
      */
     toHexString() {
-        if (this.value >= 0) {
-            return this.value.toString(16);
+        let value = this.value & bitWidthValue[this.bitWidth - 1];
+        if (value >= 0) {
+            return value.toString(16);
         } else {
             let mask4bits = 0b1111;
             let remainBits = this.bitWidth;
 
             let buffer = [];
             while (remainBits >= 4) {
-                let right4bits = this.value & mask4bits;
+                let right4bits = value & mask4bits;
                 buffer.push(right4bits.toString(16));
 
-                this.value = this.value >> 4;
+                value = value >> 4;
                 remainBits -= 4;
             }
 
             if (remainBits > 0) {
-                let right4bits = this.value & mask4bits;
+                let right4bits = value & mask4bits;
                 buffer.push(right4bits.toString(16));
             }
 
@@ -428,7 +459,8 @@ class Binary {
      * @returns
      */
     toDecimalString() {
-        return this.value.toString(10);
+        let value = this.value & bitWidthValue[this.bitWidth - 1];
+        return value.toString(10);
     }
 
 }
