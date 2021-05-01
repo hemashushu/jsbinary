@@ -2,8 +2,8 @@ const Int32Math = require('../wasm/int32math');
 
 const MAX_BIT_WIDTH = 32;
 
-// 二进制数每位的数值
-// bitMark[n] = 2 ^ n
+// 二进制数每位的数值，bitMark[n] = 2 ^ n，n 从 0 开始。
+// 如 bitMark[5] = 0b10000，bitMark[8] = 0b100000000
 const bitMask = new Array(MAX_BIT_WIDTH);
 
 for (let idx = 0; idx < MAX_BIT_WIDTH; idx++) {
@@ -11,13 +11,12 @@ for (let idx = 0; idx < MAX_BIT_WIDTH; idx++) {
     bitMask[idx] = (2 ** idx) | 0;
 }
 
-// 二进制数每个长度的最大值
-// bitWidthValue[0] = 1, bitWidthValue[3] = 1 + 2 + 4 + 8
-const bitWidthValue = new Array(MAX_BIT_WIDTH);
+// 二进制数每个位宽的最大值，bitWidthValue[len] = (2 ^ len) - 1，len 从 1 开始
+// 如 bitWidthValue[1] = 0b1 = 1, bitWidthValue[3] = 0b111 = 1 + 2 + 4,
+const bitWidthValue = new Array(MAX_BIT_WIDTH + 1);
 
-bitWidthValue[0] = 1
-for(let idx=1;idx<MAX_BIT_WIDTH; idx++) {
-    bitWidthValue[idx] = (bitWidthValue[idx-1] + (2 ** idx)) | 0;
+for(let len=1;len<MAX_BIT_WIDTH+1; len++) {
+    bitWidthValue[len] = ((2 ** len) - 1) | 0;
 }
 
 /**
@@ -195,24 +194,24 @@ class Binary {
 
     static and(left, right) {
         // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#bitwise_operators
-        let value = (left.value & right.value) & bitWidthValue[left.bitWidth - 1];
+        let value = (left.value & right.value) & bitWidthValue[left.bitWidth];
         return new Binary(value, left.bitWidth);
     }
 
     static or(left, right) {
-        let value = (left.value | right.value) & bitWidthValue[left.bitWidth - 1];
+        let value = (left.value | right.value) & bitWidthValue[left.bitWidth];
         return new Binary(value, left.bitWidth);
     }
 
     static nand(left, right) {
         // nand = not(and)
-        let value = (~(left.value & right.value)) & bitWidthValue[left.bitWidth - 1];
+        let value = (~(left.value & right.value)) & bitWidthValue[left.bitWidth];
         return new Binary(value, left.bitWidth);
     }
 
     static nor(left, right) {
         // nor = not(or)
-        let value = (~(left.value | right.value)) & bitWidthValue[left.bitWidth - 1];
+        let value = (~(left.value | right.value)) & bitWidthValue[left.bitWidth];
         return new Binary(value, left.bitWidth);
     }
 
@@ -228,7 +227,7 @@ class Binary {
         // 0	1	1
         // 1	0	1
         // 1	1	0
-        let value = (left.value ^ right.value) & bitWidthValue[left.bitWidth - 1];
+        let value = (left.value ^ right.value) & bitWidthValue[left.bitWidth];
         return new Binary(value, left.bitWidth);
     }
 
@@ -246,17 +245,17 @@ class Binary {
         // 0	1	0
         // 1	0	0
         // 1	1	1
-        let value = (~(left.value ^ right.value)) & bitWidthValue[left.bitWidth - 1];
+        let value = (~(left.value ^ right.value)) & bitWidthValue[left.bitWidth];
         return new Binary(value, left.bitWidth);
     }
 
     static not(binary) {
-        let value = (~binary.value) & bitWidthValue[binary.bitWidth - 1];
+        let value = (~binary.value) & bitWidthValue[binary.bitWidth];
         return new Binary(value, binary.bitWidth);
     }
 
     static leftShift(binary, bitWidth) {
-        let value = (binary.value << bitWidth) & bitWidthValue[binary.bitWidth - 1];
+        let value = (binary.value << bitWidth) & bitWidthValue[binary.bitWidth];
         return new Binary(value, binary.bitWidth);
     }
 
@@ -289,7 +288,7 @@ class Binary {
     static logicRightShift(binary, bitWidth) {
         // 001100...00 >> 2 = 000011...00
         // 110000...00 >> 2 = 001100...00
-        let value = (bitWidthValue[bitWidth - 1] & binary.value) >>> bitWidth
+        let value = (bitWidthValue[bitWidth] & binary.value) >>> bitWidth
         return new Binary(value, binary.bitWidth);
     }
 
@@ -408,7 +407,7 @@ class Binary {
      * @returns
      */
     toBinaryString() {
-        let value = this.value & bitWidthValue[this.bitWidth - 1];
+        let value = this.value & bitWidthValue[this.bitWidth];
         if (value >= 0) {
             return value.toString(2);
         } else {
@@ -427,7 +426,7 @@ class Binary {
      * @returns
      */
     toHexString() {
-        let value = this.value & bitWidthValue[this.bitWidth - 1];
+        let value = this.value & bitWidthValue[this.bitWidth];
         if (value >= 0) {
             return value.toString(16);
         } else {
@@ -459,7 +458,7 @@ class Binary {
      * @returns
      */
     toDecimalString() {
-        let value = this.value & bitWidthValue[this.bitWidth - 1];
+        let value = this.value & bitWidthValue[this.bitWidth];
         return value.toString(10);
     }
 
