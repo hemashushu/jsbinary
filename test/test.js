@@ -1,6 +1,6 @@
-const Binary = require('../src/binary');
+const assert = require('assert/strict');
 
-var assert = require('assert/strict');
+const Binary = require('../src/binary');
 
 describe('Binary', () => {
     describe('constructor', () => {

@@ -1,4 +1,5 @@
 const Int32Math = require('../wasm/int32math');
+const {IllegalArgumentException} = require('jsexception');
 
 const MAX_BIT_WIDTH = 32;
 
@@ -69,7 +70,7 @@ class Binary {
         }
 
         if (str.length > 32 || bitWidth > 32) {
-            throw new RangeError('Bit width out of range.');
+            throw new IllegalArgumentException('Bit width out of range.');
         }
 
         return new Binary(parseInt(str, 2), bitWidth);
@@ -90,8 +91,12 @@ class Binary {
             bitWidth = str.length * 4;
         }
 
-        if (str.startsWith('-') || str.length > 8 || bitWidth > 32) {
-            throw new RangeError('Bit width out of range.');
+        if (str.startsWith('-')) {
+            throw new IllegalArgumentException('Cannot be a negative hexadecimal number.');
+        }
+
+        if (str.length > 8 || bitWidth > 32) {
+            throw new IllegalArgumentException('Bit width out of range.');
         }
 
         return new Binary(parseInt(str, 16), bitWidth);
@@ -112,7 +117,7 @@ class Binary {
         }
 
         if (bitWidth > 32) {
-            throw new RangeError('Bit width out of range.');
+            throw new IllegalArgumentException('Bit width out of range.');
         }
 
         return new Binary(value, bitWidth);
