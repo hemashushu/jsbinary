@@ -1,5 +1,5 @@
 const Int32Math = require('../wasm/int32math');
-const {IllegalArgumentException} = require('jsexception');
+const { IllegalArgumentException } = require('jsexception');
 
 const MAX_BIT_WIDTH = 32;
 
@@ -16,7 +16,7 @@ for (let idx = 0; idx < MAX_BIT_WIDTH; idx++) {
 // 如 bitWidthValue[1] = 0b1 = 1, bitWidthValue[3] = 0b111 = 1 + 2 + 4,
 const bitWidthValue = new Array(MAX_BIT_WIDTH + 1);
 
-for(let len=1;len<MAX_BIT_WIDTH+1; len++) {
+for (let len = 1; len < MAX_BIT_WIDTH + 1; len++) {
     bitWidthValue[len] = ((2 ** len) - 1) | 0;
 }
 
@@ -265,6 +265,21 @@ class Binary {
     }
 
     /**
+     * 逻辑右移。
+     * 最高位将会使用 0 来填充。
+     *
+     * @param {*} binary
+     * @param {*} bitWidth 0-32
+     * @returns
+     */
+    static logicRightShift(binary, bitWidth) {
+        // 001100...00 >> 2 = 000011...00
+        // 110000...00 >> 2 = 001100...00
+        let value = (bitWidthValue[bitWidth] & binary.value) >>> bitWidth
+        return new Binary(value, binary.bitWidth);
+    }
+
+    /**
      * 算术右移。
      * 当数值的最高位为 1 时（即表示负数时），最高位会使用 1 来填充。
      * 当最高位为 0 时，最高位会使用 0 来填充，效果如同逻辑右移。
@@ -279,21 +294,6 @@ class Binary {
         // 001100...00 >> 2 = 000011...00
         // 110000...00 >> 2 = 111100...00
         let value = binary.value >> bitWidth;
-        return new Binary(value, binary.bitWidth);
-    }
-
-    /**
-     * 逻辑右移。
-     * 最高位将会使用 0 来填充。
-     *
-     * @param {*} binary
-     * @param {*} bitWidth 0-32
-     * @returns
-     */
-    static logicRightShift(binary, bitWidth) {
-        // 001100...00 >> 2 = 000011...00
-        // 110000...00 >> 2 = 001100...00
-        let value = (bitWidthValue[bitWidth] & binary.value) >>> bitWidth
         return new Binary(value, binary.bitWidth);
     }
 
