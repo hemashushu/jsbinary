@@ -1,6 +1,6 @@
 const assert = require('assert/strict');
 
-const Binary = require('../src/binary');
+const { Binary } = require('../index');
 
 // TODO:: 以下方法尚未测试：
 //
@@ -193,6 +193,8 @@ describe('Binary', () => {
         assert(Binary.equals(r2, Binary.fromBinaryString('0010')));
     });
 
+    // TODO::
+
     it('Test or()', () => { });
     it('Test nand()', () => { });
     it('Test nor()', () => { });
@@ -202,5 +204,4 @@ describe('Binary', () => {
     it('Test leftShift()', () => { });
     it('Test rightShift32()', () => { });
     it('Test logicRightShift()', () => { });
-
 });
