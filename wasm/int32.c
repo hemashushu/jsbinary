@@ -146,36 +146,36 @@ extern "C"
         return a ^ b;
     }
 
-    uint32_t not(uint32_t a)
+    uint32_t not(uint32_t val)
     {
         // not(13, 00000000000000000000000000001101) = -14, 11111111111111111111111111110010
         // not(-5, 11111111111111111111111111111011) = 4, 00000000000000000000000000000100
-        return ~a;
+        return ~val;
     }
 
-    uint32_t left_shift(uint32_t a, uint32_t b)
+    uint32_t left_shift(uint32_t val, uint32_t count)
     {
         // left shift 2 (13, 00000000000000000000000000001101) = 52, 00000000000000000000000000110100
         // left shift 2 (-5, 11111111111111111111111111111011) = -20, 11111111111111111111111111101100
-        return a << b;
+        return val << count;
     }
 
-    uint32_t right_shift(uint32_t a, uint32_t b)
+    uint32_t right_shift(uint32_t val, uint32_t count)
     {
         // arithmetic right shift:
         //
         // right shift 2 (13, 00000000000000000000000000001101) = 3, 00000000000000000000000000000011
         // right shift 2 (-5, 11111111111111111111111111111011) = -2, 11111111111111111111111111111110
-        return (int32_t)a >> b;
+        return (int32_t)val >> count;
     }
 
-    uint32_t logic_right_shift(uint32_t a, uint32_t b)
+    uint32_t logic_right_shift(uint32_t val, uint32_t count)
     {
         // logic right shift:
         //
         // logic right shift 2 (13, 00000000000000000000000000001101) = 3, 00000000000000000000000000000011
         // logic right shift 2 (-5, 11111111111111111111111111111011) = 1073741822, 00111111111111111111111111111110
-        return a >> b;
+        return val >> count;
     }
 
 #ifdef __cplusplus

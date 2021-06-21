@@ -119,32 +119,32 @@ describe('Binary', () => {
         assert.equal(b1.getBit(3), 0);
         assert.equal(b1.getBit(4), 1);
 
-        b1.setBit(0, 1);
-        assert.equal(b1.getBit(0), 1);
-        assert.equal(b1.toInt32(), 0b10011);
+        let b1m1 = b1.setBit(0, 1);
+        assert.equal(b1m1.getBit(0), 1);
+        assert.equal(b1m1.toInt32(), 0b10011);
 
-        b1.setBit(1, 0);
-        assert.equal(b1.getBit(1), 0);
-        assert.equal(b1.toInt32(), 0b10001);
+        let b1m2 = b1.setBit(1, 0);
+        assert.equal(b1m2.getBit(1), 0);
+        assert.equal(b1m2.toInt32(), 0b10000);
 
         // 测试负数
         let b2 = Binary.fromInt32(-2, 32);
         assert.equal(b2.getBit(31), 1);
         assert.equal(b2.getBit(0), 0);
 
-        b2.setBit(31, 0);
-        assert.equal(b2.getBit(31), 0);
-        assert.equal(b2.toInt32(), 0x7ffffffe);
+        let b2m1 = b2.setBit(31, 0);
+        assert.equal(b2m1.getBit(31), 0);
+        assert.equal(b2m1.toInt32(), 0x7ffffffe);
     });
 
-    it('Test getBits(), setBits()', () => {
+    it('Test slice(), splice()', () => {
         let b1 = Binary.fromBinaryString('10101100', 8);
-        let bPartial1 = b1.getBits(1, 5);
+        let bPartial1 = b1.slice(1, 5);
         assert.equal(bPartial1.toBinaryString(), '10110');
 
-        let b2 = Binary.fromBinaryString('10000000', 8);
-        b2.setBits(bPartial1, 1);
-        assert.equal(b2.toBinaryString(), '10101100');
+        let b2 = Binary.fromBinaryString('10001111', 8);
+        let b3 = b2.splice(bPartial1, 1);
+        assert.equal(b3.toBinaryString(), '10101101');
     });
 
     it('Test toBinaryString(), toHexString(), toDecimalString()', () => {
