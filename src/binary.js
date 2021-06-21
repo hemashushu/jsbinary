@@ -1,56 +1,75 @@
-const Int32Math = require('../wasm/int32math');
+const Int32 = require('../wasm/int32');
 const { IllegalArgumentException } = require('jsexception');
 
 const MAX_BIT_WIDTH = 32;
 
-// 二进制数每位的数值，bitMark[n] = 2 ^ n，n 从 0 开始。
-// 如 bitMark[5] = 0b10000，bitMark[8] = 0b100000000
-const bitMask = new Array(MAX_BIT_WIDTH);
+// 二进制数每位的数值，用来跟内部的 int32 数值作 and 运算以
+// 获取二进制每一位的值（1 或者 0）
+//
+// bitNumberMask[n] = 2 ^ n，n 从 0 开始。
+//
+// 如
+// bitNumberMask[5] = 0b10000
+// bitNumberMask[8] = 0b100000000
+const bitNumberMask = new Array(MAX_BIT_WIDTH);
 
 for (let idx = 0; idx < MAX_BIT_WIDTH; idx++) {
     // Math.pow(2, idx) 跟 (2 ** idx) 结果相同
-    bitMask[idx] = (2 ** idx) | 0;
+    bitNumberMask[idx] = (2 ** idx) | 0;
 }
 
-// 二进制数每个位宽的最大值，bitWidthValue[len] = (2 ^ len) - 1，len 从 1 开始
-// 如 bitWidthValue[1] = 0b1 = 1, bitWidthValue[3] = 0b111 = 1 + 2 + 4,
-const bitWidthValue = new Array(MAX_BIT_WIDTH + 1);
+// 二进制数每个位宽的最大值
+// 用于把超过指定位宽的二进制数的位置 0。
+//
+// bitWidthMask[len] = (2 ^ len) - 1，
+//
+// len 从 1 开始，如
+// bitWidthMask[1] = 0b1 = 1,
+// bitWidthMask[3] = 0b111 = 1 + 2 + 4,
+const bitWidthMask = new Array(MAX_BIT_WIDTH + 1);
 
 for (let len = 1; len < MAX_BIT_WIDTH + 1; len++) {
-    bitWidthValue[len] = ((2 ** len) - 1) | 0;
+    bitWidthMask[len] = ((2 ** len) - 1) | 0;
 }
 
 /**
  * 一个简单的二进制数据类型操作对象。最长支持 32 位二进制数。
- *
- * 注：
- * 为提高效率，本类的大部分方法都没有对参数
- * 有效性进行检测，调用者必须自己保证参数的有效性。
- *
  */
 class Binary {
 
     /**
-     * 构造 Binary 对象
+     * - 这个构造函数是一个私有的构造函数
+     * - 提高可移植性，构造 Binary 对象时请勿直接使用此构造函数，而应该使用诸如
+     *   fromBinaryString、fromInt32 等等静态方法。
      *
-     * 这里未对 value, bitWidth 作有效性检测，调用者必须自己保证参数的有效性。
-     *
-     * @param {*} value Int32 数值
+     * @param {*} value 内部用于表示二进制数据的值，目前采用的是 JavaScript 内部
+     *     的基本 int（Number） 类型。
      * @param {*} bitWidth 取值范围为 1-32，当 value 为负数时，length 必须为 32
      */
     constructor(value, bitWidth) {
-
-        // Binary 对象对应的整型数值，其值为 Int32。
+        // - 当前的实现使用 JavaScript 的基本 int（Number）储存内部数据的值，
+        //   该数值将作为无符号数（uint32_t）来处里，当传入的数字
+        //   为负数时，将会转换到无符号数的范围，不过由于 JavaScript 缺少
+        //   无符号数据类型，所以当使用 toInt32() 方法读取 value 时，仍然会获得负数。
         //
-        // value 将作为无符号数（uint32_t）来处里，当传入的数字
-        // 为负数时，将会转换到无符号数的范围，不过由于 JavaScript 缺少
-        // 无符号数据类型，所以直接读取 value 时，仍然会获得负数。
-        // 当需要使用字符串表达 Binary 对象的数值时，尽量使用 toBinaryString()、toHexString() 以及
-        // toDecimalString() 方法，直接使用 value.toString() 未必能正确表达数值（因为有符号）。
-        this.value = value | 0;
+        // - this._value 是一个内部私有的数据，外部不要直接读取这个类成员的值。
+        //
+        // - 当需要使用字符串表达 Binary 对象的数值时，应使用 toBinaryString()、
+        //   toHexString() 以及 toDecimalString() 方法。
+        //   不用使用 toInt32() 方法获取数值再自己 toString()。
+        this._value = value | 0;
 
         // Binary 对象的位宽，范围从 1~32。
         this.bitWidth = bitWidth;
+    }
+
+    static fromInt32(value, bitWidth) {
+        if (bitWidth > 32 || bitWidth < 1) {
+            throw new IllegalArgumentException('Bit width out of range.');
+        }
+
+        value = value & bitWidthMask[bitWidth];
+        return new Binary(value, bitWidth);
     }
 
     /**
@@ -58,7 +77,7 @@ class Binary {
      *
      * @param {*} str 二进制数字字符串，最长不超过 32 个字符，字符串中不能有
      *     除了 [01] 之外的字符，不能出现正负符号。
-     *     正确的示例：
+     *     示例：
      *     '1010', '11100000'
      * @param {*} bitWidth 1-32
      * @returns
@@ -69,11 +88,11 @@ class Binary {
             bitWidth = str.length;
         }
 
-        if (str.length > 32 || bitWidth > 32) {
+        if (str.length > 32 || bitWidth > 32 || bitWidth < 1) {
             throw new IllegalArgumentException('Bit width out of range.');
         }
 
-        return new Binary(parseInt(str, 2), bitWidth);
+        return Binary.fromInt32(parseInt(str, 2), bitWidth);
     }
 
     /**
@@ -81,7 +100,7 @@ class Binary {
      *
      * @param {*} str 十六进制数字字符串，最长不超过 8 个字符，字符串中不能有
      *     除了 [0-9a-fA-F] 之外的字符，不能出现正负符号。
-     *     正确示例：
+     *     示例：
      *     'FF00', 'DEADBEEF'
      * @param {*} bitWidth 1-32
      * @returns
@@ -95,11 +114,11 @@ class Binary {
             throw new IllegalArgumentException('Cannot be a negative hexadecimal number.');
         }
 
-        if (str.length > 8 || bitWidth > 32) {
+        if (str.length > 8 || bitWidth > 32 || bitWidth < 1) {
             throw new IllegalArgumentException('Bit width out of range.');
         }
 
-        return new Binary(parseInt(str, 16), bitWidth);
+        return Binary.fromInt32(parseInt(str, 16), bitWidth);
     }
 
     /**
@@ -116,133 +135,179 @@ class Binary {
             bitWidth = value.toString(2).length;
         }
 
-        if (bitWidth > 32) {
+        if (bitWidth > 32 || bitWidth < 1) {
             throw new IllegalArgumentException('Bit width out of range.');
         }
 
-        return new Binary(value, bitWidth);
+        return Binary.fromInt32(value, bitWidth);
     }
 
     /**
      * 复制 Binary 对象。
      *
-     * @param {*} binary
+     * @param {*} binaryObject
      * @returns
      */
-    static clone(binary) {
-        return new Binary(binary.value, binary.bitWidth);
+    static fromBinaryObject(binaryObject) {
+        return new Binary(binaryObject._value, binaryObject.bitWidth);
     }
 
     /**
      * 判断两个 Binary 对象是否相等（数值和位宽均相等）。
      *
-     * @param {*} left
-     * @param {*} right
+     * @param {*} leftBinary
+     * @param {*} rightBinary
      * @returns
      */
-    static equals(left, right) {
-        return left.value === right.value &&
-            left.bitWidth === right.bitWidth;
+    static equal(leftBinary, rightBinary) {
+        return leftBinary._value === rightBinary._value &&
+            leftBinary.bitWidth === rightBinary.bitWidth;
     }
 
-    static add32(left, right) {
-        // 调用者必须确保两个操作数的位宽均为 32 位。
-        return new Binary(left.value + right.value, left.bitWidth);
+    static greaterThan32(leftBinary, rightBinary) {
+        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32){
+            throw new IllegalArgumentException('Bit width does not match.');
+        }
+        return Int32.greaterThan(leftBinary._value, rightBinary._value) === 1;
     }
 
-    static subtract32(left, right) {
-        // 调用者必须确保两个操作数的位宽均为 32 位。
-        return new Binary(left.value - right.value, left.bitWidth);
+    static greaterThanUnsigned32(leftBinary, rightBinary) {
+        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32){
+            throw new IllegalArgumentException('Bit width does not match.');
+        }
+        return Int32.greaterThanUnsigned(leftBinary._value, rightBinary._value) === 1;
     }
 
-    static multiplyLow32(left, right) {
-        // 调用者必须确保两个操作数的位宽均为 32 位。
-        let value = Int32Math.multiplyLow(left.value, right.value);
-        return new Binary(value, left.bitWidth);
+    static greaterThanOrEqual32(leftBinary, rightBinary) {
+        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32){
+            throw new IllegalArgumentException('Bit width does not match.');
+        }
+        return Int32.greaterThanOrEqual(leftBinary._value, rightBinary._value) === 1;
     }
 
-    static multiplyHigh32(left, right) {
-        // 调用者必须确保两个操作数的位宽均为 32 位。
-        let value = Int32Math.multiplyHigh(left.value, right.value);
-        return new Binary(value, left.bitWidth);
+    static greaterThanOrEqualUnsigned32(leftBinary, rightBinary) {
+        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32){
+            throw new IllegalArgumentException('Bit width does not match.');
+        }
+        return Int32.greaterThanOrEqualUnsigned(leftBinary._value, rightBinary._value) === 1;
     }
 
-    static multiplyHighUnsigned32(left, right) {
-        // 调用者必须确保两个操作数的位宽均为 32 位。
-        let value = Int32Math.multiplyHighUnsigned(left.value, right.value);
-        return new Binary(value, left.bitWidth);
+    static add32(leftBinary, rightBinary) {
+        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32){
+            throw new IllegalArgumentException('Bit width does not match.');
+        }
+        return Binary.fromInt32(leftBinary._value + rightBinary._value, leftBinary.bitWidth);
     }
 
-    static divide32(left, right) {
-        // 调用者必须确保两个操作数的位宽均为 32 位。
-        let value = Int32Math.divide(left.value, right.value);
-        return new Binary(value, left.bitWidth);
+    static subtract32(leftBinary, rightBinary) {
+        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32){
+            throw new IllegalArgumentException('Bit width does not match.');
+        }
+        return Binary.fromInt32(leftBinary._value - rightBinary._value, leftBinary.bitWidth);
     }
 
-    static divideUnsigned32(left, right) {
-        // 调用者必须确保两个操作数的位宽均为 32 位。
-        let value = Int32Math.divideUnsigned(left.value, right.value);
-        return new Binary(value, left.bitWidth);
+    static multiplyLow32(leftBinary, rightBinary) {
+        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32){
+            throw new IllegalArgumentException('Bit width does not match.');
+        }
+        let value = Int32.multiplyLow(leftBinary._value, rightBinary._value);
+        return Binary.fromInt32(value, leftBinary.bitWidth);
     }
 
-    static remainder32(left, right) {
-        // 调用者必须确保两个操作数的位宽均为 32 位。
-        let value = Int32Math.remainder(left.value, right.value);
-        return new Binary(value, left.bitWidth);
+    static multiplyHigh32(leftBinary, rightBinary) {
+        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32){
+            throw new IllegalArgumentException('Bit width does not match.');
+        }
+        let value = Int32.multiplyHigh(leftBinary._value, rightBinary._value);
+        return Binary.fromInt32(value, leftBinary.bitWidth);
     }
 
-    static remainderUnsigned32(left, right) {
-        // 调用者必须确保两个操作数的位宽均为 32 位。
-        let value = Int32Math.remainderUnsigned(left.value, right.value);
-        return new Binary(value, left.bitWidth);
+    static multiplyHighUnsigned32(leftBinary, rightBinary) {
+        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32){
+            throw new IllegalArgumentException('Bit width does not match.');
+        }
+        let value = Int32.multiplyHighUnsigned(leftBinary._value, rightBinary._value);
+        return Binary.fromInt32(value, leftBinary.bitWidth);
     }
 
-    static and(left, right) {
+    static divide32(leftBinary, rightBinary) {
+        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32){
+            throw new IllegalArgumentException('Bit width does not match.');
+        }
+        let value = Int32.divide(leftBinary._value, rightBinary._value);
+        return Binary.fromInt32(value, leftBinary.bitWidth);
+    }
+
+    static divideUnsigned32(leftBinary, rightBinary) {
+        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32){
+            throw new IllegalArgumentException('Bit width does not match.');
+        }
+        let value = Int32.divideUnsigned(leftBinary._value, rightBinary._value);
+        return Binary.fromInt32(value, leftBinary.bitWidth);
+    }
+
+    static remainder32(leftBinary, rightBinary) {
+        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32){
+            throw new IllegalArgumentException('Bit width does not match.');
+        }
+        let value = Int32.remainder(leftBinary._value, rightBinary._value);
+        return Binary.fromInt32(value, leftBinary.bitWidth);
+    }
+
+    static remainderUnsigned32(leftBinary, rightBinary) {
+        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32){
+            throw new IllegalArgumentException('Bit width does not match.');
+        }
+        let value = Int32.remainderUnsigned(leftBinary._value, rightBinary._value);
+        return Binary.fromInt32(value, leftBinary.bitWidth);
+    }
+
+    static and(leftBinary, rightBinary) {
         // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#bitwise_operators
-        let value = (left.value & right.value) & bitWidthValue[left.bitWidth];
-        return new Binary(value, left.bitWidth);
+        let value = (leftBinary._value & rightBinary._value) & bitWidthMask[leftBinary.bitWidth];
+        return Binary.fromInt32(value, leftBinary.bitWidth);
     }
 
-    static or(left, right) {
-        let value = (left.value | right.value) & bitWidthValue[left.bitWidth];
-        return new Binary(value, left.bitWidth);
+    static or(leftBinary, rightBinary) {
+        let value = (leftBinary._value | rightBinary._value) & bitWidthMask[leftBinary.bitWidth];
+        return Binary.fromInt32(value, leftBinary.bitWidth);
     }
 
-    static nand(left, right) {
+    static nand(leftBinary, rightBinary) {
         // nand = not(and)
-        let value = (~(left.value & right.value)) & bitWidthValue[left.bitWidth];
-        return new Binary(value, left.bitWidth);
+        let value = (~(leftBinary._value & rightBinary._value)) & bitWidthMask[leftBinary.bitWidth];
+        return Binary.fromInt32(value, leftBinary.bitWidth);
     }
 
-    static nor(left, right) {
+    static nor(leftBinary, rightBinary) {
         // nor = not(or)
-        let value = (~(left.value | right.value)) & bitWidthValue[left.bitWidth];
-        return new Binary(value, left.bitWidth);
+        let value = (~(leftBinary._value | rightBinary._value)) & bitWidthMask[leftBinary.bitWidth];
+        return Binary.fromInt32(value, leftBinary.bitWidth);
     }
 
     /**
      * 异或
-     * @param {*} left
-     * @param {*} right
+     * @param {*} leftBinary
+     * @param {*} rightBinary
      * @returns
      */
-    static xor(left, right) {
+    static xor(leftBinary, rightBinary) {
         // In1	In2	Out
         // 0	0	0
         // 0	1	1
         // 1	0	1
         // 1	1	0
-        let value = (left.value ^ right.value) & bitWidthValue[left.bitWidth];
-        return new Binary(value, left.bitWidth);
+        let value = (leftBinary._value ^ rightBinary._value) & bitWidthMask[leftBinary.bitWidth];
+        return Binary.fromInt32(value, leftBinary.bitWidth);
     }
 
     /**
      * 同或
-     * @param {*} left
-     * @param {*} right
+     * @param {*} leftBinary
+     * @param {*} rightBinary
      * @returns
      */
-    static xnor(left, right) {
+    static xnor(leftBinary, rightBinary) {
         // xnor = not(xor)
         //
         // In1	In2	Out
@@ -250,18 +315,18 @@ class Binary {
         // 0	1	0
         // 1	0	0
         // 1	1	1
-        let value = (~(left.value ^ right.value)) & bitWidthValue[left.bitWidth];
-        return new Binary(value, left.bitWidth);
+        let value = (~(leftBinary._value ^ rightBinary._value)) & bitWidthMask[leftBinary.bitWidth];
+        return Binary.fromInt32(value, leftBinary.bitWidth);
     }
 
     static not(binary) {
-        let value = (~binary.value) & bitWidthValue[binary.bitWidth];
-        return new Binary(value, binary.bitWidth);
+        let value = (~binary._value) & bitWidthMask[binary.bitWidth];
+        return Binary.fromInt32(value, binary.bitWidth);
     }
 
     static leftShift(binary, bitWidth) {
-        let value = (binary.value << bitWidth) & bitWidthValue[binary.bitWidth];
-        return new Binary(value, binary.bitWidth);
+        let value = (binary._value << bitWidth) & bitWidthMask[binary.bitWidth];
+        return Binary.fromInt32(value, binary.bitWidth);
     }
 
     /**
@@ -275,8 +340,8 @@ class Binary {
     static logicRightShift(binary, bitWidth) {
         // 001100...00 >> 2 = 000011...00
         // 110000...00 >> 2 = 001100...00
-        let value = (bitWidthValue[bitWidth] & binary.value) >>> bitWidth
-        return new Binary(value, binary.bitWidth);
+        let value = (bitWidthMask[bitWidth] & binary._value) >>> bitWidth
+        return Binary.fromInt32(value, binary.bitWidth);
     }
 
     /**
@@ -293,8 +358,8 @@ class Binary {
 
         // 001100...00 >> 2 = 000011...00
         // 110000...00 >> 2 = 111100...00
-        let value = binary.value >> bitWidth;
-        return new Binary(value, binary.bitWidth);
+        let value = binary._value >> bitWidth;
+        return Binary.fromInt32(value, binary.bitWidth);
     }
 
     /**
@@ -306,9 +371,9 @@ class Binary {
      */
     setBit(offset, value) {
         if (value === 0) {
-            this.value = this.value & (~bitMask[offset]);
+            this._value = this._value & (~bitNumberMask[offset]);
         } else {
-            this.value = this.value | bitMask[offset];
+            this._value = this._value | bitNumberMask[offset];
         }
     }
 
@@ -345,7 +410,7 @@ class Binary {
      * @returns 0 或者 1
      */
     getBit(offset) {
-        return (this.value & bitMask[offset]) === bitMask[offset] ? 1 : 0;
+        return (this._value & bitNumberMask[offset]) === bitNumberMask[offset] ? 1 : 0;
     }
 
     /**
@@ -366,43 +431,15 @@ class Binary {
         //
         // 将得到 10110
 
-        let binary = new Binary(0, bitWidth);
+        let binary = Binary.fromInt32(0, bitWidth);
         for (let idx = 0; idx < bitWidth; idx++) {
             binary.setBit(idx, this.getBit(idx + offset));
         }
         return binary;
     }
 
-    /**
-     * 更新数值
-     *
-     * @param {*} binary
-     */
-    update(binary) {
-        this.value = binary.value | 0;
-    }
-
-    /**
-     * 通过数值来更新数值
-     *
-     * @param {*} value Int32 数值
-     */
-    updateByValue(value) {
-        this.value = value | 0;
-    }
-
-    /**
-     * 复制 Binary 对象。
-     *
-     * @param {*} binary
-     * @returns
-     */
-    clone() {
-        return Binary.clone(this);
-    }
-
-    equals(other) {
-        return Binary.equals(this, other);
+    equal(other) {
+        return Binary.equal(this, other);
     }
 
     /**
@@ -412,7 +449,7 @@ class Binary {
      * @returns
      */
     toBinaryString() {
-        let value = this.value & bitWidthValue[this.bitWidth];
+        let value = this._value & bitWidthMask[this.bitWidth];
         if (value >= 0) {
             return value.toString(2);
         } else {
@@ -431,7 +468,7 @@ class Binary {
      * @returns
      */
     toHexString() {
-        let value = this.value & bitWidthValue[this.bitWidth];
+        let value = this._value & bitWidthMask[this.bitWidth];
         if (value >= 0) {
             return value.toString(16);
         } else {
@@ -463,8 +500,13 @@ class Binary {
      * @returns
      */
     toDecimalString() {
-        let value = this.value & bitWidthValue[this.bitWidth];
+        let value = this._value & bitWidthMask[this.bitWidth];
         return value.toString(10);
+    }
+
+    toInt32() {
+        let value = this._value & bitWidthMask[this.bitWidth];
+        return value;
     }
 
 }

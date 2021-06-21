@@ -7,6 +7,25 @@
 extern "C"
 {
 #endif
+    uint32_t equal(uint32_t a, uint32_t b) {
+        return a == b ? 1 : 0;
+    }
+
+    uint32_t greater_than(uint32_t a, uint32_t b) {
+        return (int32_t)a > (int32_t)b ? 1 : 0;
+    }
+
+    uint32_t greater_than_or_equal(uint32_t a, uint32_t b) {
+        return (int32_t)a >= (int32_t)b ? 1 : 0;
+    }
+
+    uint32_t greater_than_unsigned(uint32_t a, uint32_t b) {
+        return a > b ? 1 : 0;
+    }
+
+    uint32_t greater_than_or_equal_unsigned(uint32_t a, uint32_t b) {
+        return a >= b ? 1 : 0;
+    }
 
     //EMSCRIPTEN_KEEPALIVE
     uint32_t add(uint32_t a, uint32_t b)
@@ -79,8 +98,11 @@ extern "C"
         return a / b;
     }
 
-    uint32_t remainder_(uint32_t a, uint32_t b)
+    uint32_t remainder_signed(uint32_t a, uint32_t b)
     {
+        // conflicting types for built-in function ‘remainder’; expected ‘double(double,  double)’
+        // note: ‘remainder’ is declared in header ‘<math.h>’
+
         // 13 % 5 = 3
         // 13 % -5 = 3
         // -13 % 5 = -3

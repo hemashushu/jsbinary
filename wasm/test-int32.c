@@ -1,4 +1,4 @@
-#include "int32math.c"
+#include "int32.c"
 
 #include <stdio.h>
 #include <inttypes.h>
@@ -25,25 +25,42 @@ int main() {
         -13, 5,
         -13, -5};
 
-    func funcs[] = {add, subtract,
-        multiply_low, multiply_high, multiply_high_unsigned,
+    // 两元操作符
+
+    func funcs[] = {
+        equal,
+        greater_than, greater_than_unsigned,
+        greater_than_or_equal, greater_than_or_equal_unsigned,
+        add, subtract,
+        multiply_low,
+        multiply_high, multiply_high_unsigned,
         divide, divide_unsigned,
-        remainder_, remainder_unsigned,
+        remainder_signed, remainder_unsigned,
         and, or, xor};
 
-    char* func_names[] = {"add", "subtract",
-        "multiply_low", "multiply_high", "multiply_high_unsigned",
+    char* func_names[] = {
+        "equal",
+        "greater_than", "greater_than_unsigned",
+        "greater_than_or_equal","greater_than_or_equal_unsigned",
+        "add", "subtract",
+        "multiply_low",
+        "multiply_high", "multiply_high_unsigned",
         "divide", "divide_unsigned",
-        "remainder_", "remainder_unsigned",
+        "remainder_signed", "remainder_unsigned",
         "and", "or", "xor"};
 
-    char* operators[] = {"+", "-",
-        "* (low)", "* (high)", "* (high unsig)",
+    char* operators[] = {
+        "==",
+        ">", "> (unsig)",
+        ">=",">= (unsig)",
+        "+", "-",
+        "* (low)",
+        "* (high)", "* (high unsig)",
         "/", "/ (unsig)",
         "%", "% (unsig)",
         "&", "|", "^"};
 
-    for(int fi=0;fi<12;fi++) {
+    for(int fi=0;fi<17;fi++) {
         printf("function: %s\n", func_names[fi]);
         for(int ni=0;ni<4;ni++) {
             int32_t a = numbers[ni*2];
@@ -54,7 +71,13 @@ int main() {
         printf("\n");
     }
 
-    // function not
+    // 等号判断
+    printf("13 == 13: %d\n", equal(13, 13));
+    printf("13 >= 13: %d\n", greater_than_or_equal(13, 13));
+    printf("13 >= 13 (unsign): %d\n", greater_than_or_equal_unsigned(13, 13));
+    printf("\n");
+
+    // 一元操作符 not
     int32_t a, r;
     char str_a[33];
     char str_r[33];
@@ -75,7 +98,7 @@ int main() {
 
     printf("\n");
 
-    // function left shift
+    // 移位操作 left shift
 
     printf("function: left shift\n");
 
@@ -93,7 +116,7 @@ int main() {
 
     printf("\n");
 
-    // function right shift
+    // 移位操作 right shift
 
     printf("function: right shift\n");
 
@@ -111,7 +134,7 @@ int main() {
 
     printf("\n");
 
-    // function logic right shift
+    // 移位操作 logic right shift
 
     printf("function: logic right shift\n");
 
