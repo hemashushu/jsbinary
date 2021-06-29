@@ -40,11 +40,14 @@ const wasmHex =
 
 let importObject = {
     env: {
-        memory: new WebAssembly.Memory({ initial: 256 }),
+        // The WebAssembly.Memory object is a resizable ArrayBuffer or SharedArrayBuffer that holds the raw bytes of memory accessed by a WebAssembly Instance.
+        // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WebAssembly/Memory
+        // memory: new WebAssembly.Memory({ initial: 10 }),
     },
     imports: {
         // jsfunc: function(arg) {
-        //     // some function want to import to WASM vm
+        //      some function want to import to WASM,
+        //      write 'extern void jsfunc(int i);' in C.
         // }
     }
 };

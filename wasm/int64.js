@@ -21,7 +21,7 @@ const wasmHex =
 
 let importObject = {
     env: {
-        memory: new WebAssembly.Memory({ initial: 256 }),
+        // memory: new WebAssembly.Memory({ initial: 1 }); // 1 page = 64KB
     },
     imports: {
     }
@@ -92,14 +92,14 @@ let buffer = memory.buffer;
 let uint64array = new BigUint64Array(buffer, 0, 4);
 
 const Int64 = {
-    add: function(a, b) {
+    add(a, b) {
         uint64array[0] = a;
         uint64array[1] = b;
         Int64Private.add(uint64array.byteOffset);
         return uint64array[2];
     },
 
-    subtract: function(a, b) {
+    subtract(a, b) {
         uint64array[0] = a;
         uint64array[1] = b;
         Int64Private.subtract(uint64array.byteOffset);
