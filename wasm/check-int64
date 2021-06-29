@@ -1,0 +1,3 @@
+#!/bin/bash
+gcc -o check-int64.bin check-int64.c
+./check-int64.bin

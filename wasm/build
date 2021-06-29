@@ -1,5 +1,0 @@
-#!/bin/bash
-#em++ -std=c++11 -o int32.wasm int32.c -O3 -s WASM=1 -s SIDE_MODULE=1 -s NO_EXIT_RUNTIME=1 -s "EXTRA_EXPORTED_RUNTIME_METHODS=['ccall', 'cwrap']"
-emcc -std=c11 -o int32.wasm int32.c -O3 -s WASM=1 -s SIDE_MODULE=1
-#hexdump int32.wasm -ve '1/1 "%02x"'|fold -w 80 > int32.wasm.hex
-hexdump int32.wasm -ve '1/1 "%02x"' > int32.wasm.hex

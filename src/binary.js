@@ -160,13 +160,19 @@ class Binary {
      *
      * @param {*} leftBinary
      * @param {*} rightBinary
-     * @returns
+     * @returns Boolean
      */
     static equal(leftBinary, rightBinary) {
         return leftBinary._int32Value === rightBinary._int32Value &&
             leftBinary.bitWidth === rightBinary.bitWidth;
     }
 
+    /**
+     *
+     * @param {*} leftBinary
+     * @param {*} rightBinary
+     * @returns Boolean
+     */
     static greaterThan32(leftBinary, rightBinary) {
         if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32){
             throw new IllegalArgumentException('Bit width does not match.');

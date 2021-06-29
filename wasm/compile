@@ -1,2 +1,0 @@
-#!/bin/bash
-cc -o test-int32 test-int32.c

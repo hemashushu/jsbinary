@@ -1,0 +1,3 @@
+#!/bin/bash
+gcc -o check-int32.bin check-int32.c
+./check-int32.bin

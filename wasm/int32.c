@@ -1,5 +1,4 @@
 #include <inttypes.h>
-//#include <emscripten/emscripten.h>
 
 // https://developer.mozilla.org/en-US/docs/WebAssembly/C_to_wasm
 
@@ -7,6 +6,8 @@
 extern "C"
 {
 #endif
+    // EMSCRIPTEN_KEEPALIVE // from #include <emscripten/emscripten.h>
+    // __attribute__((used)) // from GNU C, https://gcc.gnu.org/onlinedocs/gcc-4.7.2/gcc/Function-Attributes.html
     uint32_t equal(uint32_t a, uint32_t b) {
         return a == b ? 1 : 0;
     }
@@ -27,7 +28,6 @@ extern "C"
         return a >= b ? 1 : 0;
     }
 
-    //EMSCRIPTEN_KEEPALIVE
     uint32_t add(uint32_t a, uint32_t b)
     {
         // 13 + 5 = 18

@@ -1,0 +1,14 @@
+#!/bin/bash
+clang int64.c \
+  --target=wasm32-unknown-unknown-wasm \
+  --optimize=3 \
+  -nostdlib \
+  -Wl,--export-all \
+  -Wl,--no-entry \
+  -Wl,--allow-undefined \
+  -I /usr/include \
+  --output int64.wasm
+
+hexdump int64.wasm -ve '1/1 "%02x"' | \
+fold -w 80 | \
+awk '{ print "\""$0"\"+"}'
