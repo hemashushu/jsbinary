@@ -143,7 +143,7 @@ describe('Binary', () => {
         assert.equal(bPartial1.toBinaryString(), '10110');
 
         let b2 = Binary.fromBinaryString('10001111', 8);
-        let b3 = b2.splice(bPartial1, 1);
+        let b3 = b2.splice(1, bPartial1);
         assert.equal(b3.toBinaryString(), '10101101');
     });
 

@@ -75,6 +75,14 @@ class Binary {
         return new Binary(value, bitWidth);
     }
 
+    static fromDoubleInt32(hi, low, bitWidth) {
+        //
+    }
+
+    static fromBitInt64(value, bitWidth) {
+        //
+    }
+
     /**
      * 从二进制字符串构造 Binary 对象
      *
@@ -445,14 +453,14 @@ class Binary {
     /**
      * 更新（连续的）多位的数值并返回新的 Binary 对象。
      *
-     * @param {*} sourceBinaryObject
      * @param {*} offset 目标数值（即当前 Binary 对象数值的）偏移值
      *     - offset + binaryObject.bitWidth 必须小于等于 this.bitWidth.
      *     - offset 是从最低位开始数的，比如 0b11110000，最右边（最低位）的 0 的
      *     - offset 为 0，最左边（最高位）的 offset 为 7。
+     * @param {*} sourceBinaryObject
      */
-    splice(sourceBinaryObject, offset) {
-        // 示例，如果对如下二进制数调用 splice('10110', 1)
+    splice(offset, sourceBinaryObject) {
+        // 示例，如果对如下二进制数调用 splice(1, '10110')
         // 10000000
         // --^---^-
         //   |   |
