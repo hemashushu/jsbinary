@@ -444,9 +444,10 @@ class Binary {
             throw new IllegalArgumentException('Offset out of range.');
         }
 
-        let originalInt32Value = this._int32Value;
-        let resultInt32Value = Int32.logicRightShift(originalInt32Value, offset);
+        let currentInt32Value = this._int32Value;
+        let resultInt32Value = Int32.logicRightShift(currentInt32Value, offset);
 
+        // 高位会被 fromInt32 方法清空，这里不需要对高位进行处理。
         return Binary.fromInt32(resultInt32Value, bitWidth);
     }
 
@@ -474,21 +475,22 @@ class Binary {
             throw new IllegalArgumentException('Offset out of range.');
         }
 
-        let sourceInt32Value = sourceBinaryObject.toInt32(); // 源数 e.g. 1111  (bitWidth = 4)
-        let leftShiftedInt32Value = Int32.leftShift(sourceInt32Value, offset); // 左移 offset 位，e.g. 111100 (offset = 2)
-
         let allOneInt32Value = -1; // 所有位都是 1 的数，e.g. 11111111
 
         // 左移 (offset + sourceBinaryObject.bitWidth) 位， e.g. 11000000 (offset + bitWidth = 2 + 4 = 6)
         let leftShiftedAllOneInt32Value = Int32.leftShift(allOneInt32Value, offset + sourceBinaryObject.bitWidth);
 
-        // 补上末尾 offset 个 1, 形成一个有空槽的数，用于将源值相应的位置 0，e.g. 11000011 (tail ones: 11)
-        let filledTailOnesInt32Value = Int32.or(leftShiftedAllOneInt32Value, bitWidthMask[offset]);
+        // 补上末尾 offset 个 1, 形成一个有空槽的数，即空槽位置为 0，其他位为 1。
+        // 用于将源值相应的位置 0，e.g. 11000011 (tail ones: 11)
+        let maskInt32Value = Int32.or(leftShiftedAllOneInt32Value, bitWidthMask[offset]);
 
-        let originalInt32Value = this._int32Value;
-        let setZerosInt32Value = Int32.and(filledTailOnesInt32Value, originalInt32Value); // source 值相应位已经被置零
+        let currentInt32Value = this._int32Value;
+        let cuttedCurrentInt32Value = Int32.and(maskInt32Value, currentInt32Value); // current 值相应位已经被置零
 
-        let resultInt32Value = Int32.or(leftShiftedInt32Value, setZerosInt32Value); // 合并
+        let sourceInt32Value = sourceBinaryObject.toInt32(); // 源数 e.g. 1111  (bitWidth = 4)
+        let leftShiftedSourceInt32Value = Int32.leftShift(sourceInt32Value, offset); // 左移 offset 位，e.g. 111100 (offset = 2)
+
+        let resultInt32Value = Int32.or(leftShiftedSourceInt32Value, cuttedCurrentInt32Value); // or 合并
         return Binary.fromInt32(resultInt32Value, this.bitWidth);
     }
 
@@ -498,49 +500,63 @@ class Binary {
 
     /**
      * 转换为 2 进制字符串
-     *
-     * 前导的 0 会被省略
      * @returns
      */
-    toBinaryString() {
+     toBinaryString() {
         let value = this._int32Value & bitWidthMask[this.bitWidth];
+        let charLength = this.bitWidth;
+
         if (value >= 0) {
-            return value.toString(2);
+            return value.toString(2).padStart(charLength, '0');
+
         } else {
             let buffer = [];
-            for (let idx = this.bitWidth - 1; idx >= 0; idx--) {
-                buffer.push(this.getBit(idx));
+
+            for (let idx = 0; idx < this.bitWidth; idx++) {
+                if (value & 1 === 1) {
+                    buffer.push('1');
+                }else {
+                    buffer.push('0');
+                }
             }
-            return buffer.join('');
+
+            return buffer.reverse().join('');
         }
     }
 
+
     /**
      * 转换为 16 进制字符串
-     *
-     * 前导的 0 会被省略
      * @returns
      */
     toHexString() {
         let value = this._int32Value & bitWidthMask[this.bitWidth];
+        let charLength = Math.ceil(this.bitWidth / 4);
+
         if (value >= 0) {
-            return value.toString(16);
+            return value.toString(16).padStart(charLength, '0');
+
         } else {
             let mask4bits = 0b1111;
-            let remainBits = this.bitWidth;
-
             let buffer = [];
-            while (remainBits >= 4) {
+
+            //             let remainBits = this.bitWidth;
+            //             while (remainBits >= 4) {
+            //                 let right4bits = value & mask4bits;
+            //                 buffer.push(right4bits.toString(16));
+            //
+            //                 value = value >> 4;
+            //                 remainBits -= 4;
+            //             }
+            //             if (remainBits > 0) {
+            //                 let right4bits = value & mask4bits;
+            //                 buffer.push(right4bits.toString(16));
+            //             }
+
+            for (let idx = 0; idx < charLength; idx++ ){
                 let right4bits = value & mask4bits;
                 buffer.push(right4bits.toString(16));
-
                 value = value >> 4;
-                remainBits -= 4;
-            }
-
-            if (remainBits > 0) {
-                let right4bits = value & mask4bits;
-                buffer.push(right4bits.toString(16));
             }
 
             return buffer.reverse().join('');
@@ -549,8 +565,6 @@ class Binary {
 
     /**
      * 转换为 10 进制字符串
-     *
-     * 前导的 0 会被省略
      * @returns
      */
     toDecimalString() {

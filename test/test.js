@@ -153,11 +153,21 @@ describe('Binary', () => {
         assert.equal(b1.toHexString(), 'a');
         assert.equal(b1.toDecimalString(), '10');
 
+        let b2 = Binary.fromBinaryString('101010', 8);
+        assert.equal(b2.toBinaryString(), '00101010');
+        assert.equal(b2.toHexString(), '2a');
+        assert.equal(b2.toDecimalString(), '42');
+
+        let b3 = Binary.fromBinaryString('100101010', 14);
+        assert.equal(b3.toBinaryString(), '00000100101010');
+        assert.equal(b3.toHexString(), '012a');
+        assert.equal(b3.toDecimalString(), '298');
+
         // 测试负数
-        let b2 = Binary.fromInt32(-1, 32);
-        assert.equal(b2.toBinaryString(), '11111111' + '11111111' + '11111111' + '11111111');
-        assert.equal(b2.toHexString(), 'ffff' + 'ffff');
-        assert.equal(b2.toDecimalString(), '-1');
+        let b4 = Binary.fromInt32(-1, 32);
+        assert.equal(b4.toBinaryString(), '11111111' + '11111111' + '11111111' + '11111111');
+        assert.equal(b4.toHexString(), 'ffff' + 'ffff');
+        assert.equal(b4.toDecimalString(), '-1');
     });
 
     it('Test and()', () => {
@@ -195,7 +205,7 @@ describe('Binary', () => {
         let r2 = Binary.add32(b1, b3);
 
         // r2 = 0b"1,00102233"
-        assert.equal(r2.toHexString(), '102233');
+        assert.equal(r2.toHexString(), '00102233');
     });
 
     it('Test subtract32()', () => {
