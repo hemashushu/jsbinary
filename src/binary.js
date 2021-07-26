@@ -1,5 +1,6 @@
-const Int32 = require('../wasm/int32');
 const { IllegalArgumentException } = require('jsexception');
+
+const Int32 = require('../wasm/int32');
 
 const MAX_BIT_WIDTH = 32;
 
@@ -68,7 +69,7 @@ class Binary {
     }
 
     static fromInt32(value, bitWidth) {
-        if (bitWidth > 32 || bitWidth < 1) {
+        if (!(bitWidth >= 1 && bitWidth <= 32)) {
             throw new IllegalArgumentException('Bit width out of range.');
         }
 
@@ -99,7 +100,11 @@ class Binary {
             bitWidth = str.length;
         }
 
-        if (str.length > 32 || bitWidth > 32 || bitWidth < 1) {
+        if (str.length > 32) {
+            throw new IllegalArgumentException('Binary value is too large.');
+        }
+
+        if (!(bitWidth >= 1 && bitWidth <= 32)) {
             throw new IllegalArgumentException('Bit width out of range.');
         }
 
@@ -125,7 +130,11 @@ class Binary {
             throw new IllegalArgumentException('Cannot be a negative hexadecimal number.');
         }
 
-        if (str.length > 8 || bitWidth > 32 || bitWidth < 1) {
+        if (str.length > 8) {
+            throw new IllegalArgumentException('Hex value is too large.');
+        }
+
+        if (!(bitWidth >= 1 && bitWidth <= 32)) {
             throw new IllegalArgumentException('Bit width out of range.');
         }
 
@@ -146,7 +155,7 @@ class Binary {
             bitWidth = value.toString(2).length;
         }
 
-        if (bitWidth > 32 || bitWidth < 1) {
+        if (!(bitWidth >= 1 && bitWidth <= 32)) {
             throw new IllegalArgumentException('Bit width out of range.');
         }
 
@@ -182,49 +191,49 @@ class Binary {
      * @returns Boolean
      */
     static greaterThan32(leftBinary, rightBinary) {
-        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32){
+        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32) {
             throw new IllegalArgumentException('Bit width does not match.');
         }
         return Int32.greaterThan(leftBinary._int32Value, rightBinary._int32Value) === 1;
     }
 
     static greaterThanUnsigned32(leftBinary, rightBinary) {
-        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32){
+        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32) {
             throw new IllegalArgumentException('Bit width does not match.');
         }
         return Int32.greaterThanUnsigned(leftBinary._int32Value, rightBinary._int32Value) === 1;
     }
 
     static greaterThanOrEqual32(leftBinary, rightBinary) {
-        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32){
+        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32) {
             throw new IllegalArgumentException('Bit width does not match.');
         }
         return Int32.greaterThanOrEqual(leftBinary._int32Value, rightBinary._int32Value) === 1;
     }
 
     static greaterThanOrEqualUnsigned32(leftBinary, rightBinary) {
-        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32){
+        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32) {
             throw new IllegalArgumentException('Bit width does not match.');
         }
         return Int32.greaterThanOrEqualUnsigned(leftBinary._int32Value, rightBinary._int32Value) === 1;
     }
 
     static add32(leftBinary, rightBinary) {
-        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32){
+        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32) {
             throw new IllegalArgumentException('Bit width does not match.');
         }
         return Binary.fromInt32(leftBinary._int32Value + rightBinary._int32Value, leftBinary.bitWidth);
     }
 
     static subtract32(leftBinary, rightBinary) {
-        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32){
+        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32) {
             throw new IllegalArgumentException('Bit width does not match.');
         }
         return Binary.fromInt32(leftBinary._int32Value - rightBinary._int32Value, leftBinary.bitWidth);
     }
 
     static multiplyLow32(leftBinary, rightBinary) {
-        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32){
+        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32) {
             throw new IllegalArgumentException('Bit width does not match.');
         }
         let value = Int32.multiplyLow(leftBinary._int32Value, rightBinary._int32Value);
@@ -232,7 +241,7 @@ class Binary {
     }
 
     static multiplyHigh32(leftBinary, rightBinary) {
-        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32){
+        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32) {
             throw new IllegalArgumentException('Bit width does not match.');
         }
         let value = Int32.multiplyHigh(leftBinary._int32Value, rightBinary._int32Value);
@@ -240,7 +249,7 @@ class Binary {
     }
 
     static multiplyHighUnsigned32(leftBinary, rightBinary) {
-        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32){
+        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32) {
             throw new IllegalArgumentException('Bit width does not match.');
         }
         let value = Int32.multiplyHighUnsigned(leftBinary._int32Value, rightBinary._int32Value);
@@ -248,7 +257,7 @@ class Binary {
     }
 
     static divide32(leftBinary, rightBinary) {
-        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32){
+        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32) {
             throw new IllegalArgumentException('Bit width does not match.');
         }
         let value = Int32.divide(leftBinary._int32Value, rightBinary._int32Value);
@@ -256,7 +265,7 @@ class Binary {
     }
 
     static divideUnsigned32(leftBinary, rightBinary) {
-        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32){
+        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32) {
             throw new IllegalArgumentException('Bit width does not match.');
         }
         let value = Int32.divideUnsigned(leftBinary._int32Value, rightBinary._int32Value);
@@ -264,7 +273,7 @@ class Binary {
     }
 
     static remainder32(leftBinary, rightBinary) {
-        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32){
+        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32) {
             throw new IllegalArgumentException('Bit width does not match.');
         }
         let value = Int32.remainder(leftBinary._int32Value, rightBinary._int32Value);
@@ -272,7 +281,7 @@ class Binary {
     }
 
     static remainderUnsigned32(leftBinary, rightBinary) {
-        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32){
+        if (leftBinary.bitWidth !== 32 || rightBinary.bitWidth !== 32) {
             throw new IllegalArgumentException('Bit width does not match.');
         }
         let value = Int32.remainderUnsigned(leftBinary._int32Value, rightBinary._int32Value);
@@ -502,7 +511,7 @@ class Binary {
      * 转换为 2 进制字符串
      * @returns
      */
-     toBinaryString() {
+    toBinaryString() {
         let value = this._int32Value & bitWidthMask[this.bitWidth];
         let charLength = this.bitWidth;
 
@@ -515,7 +524,7 @@ class Binary {
             for (let idx = 0; idx < this.bitWidth; idx++) {
                 if (value & 1 === 1) {
                     buffer.push('1');
-                }else {
+                } else {
                     buffer.push('0');
                 }
             }
@@ -553,7 +562,7 @@ class Binary {
             //                 buffer.push(right4bits.toString(16));
             //             }
 
-            for (let idx = 0; idx < charLength; idx++ ){
+            for (let idx = 0; idx < charLength; idx++) {
                 let right4bits = value & mask4bits;
                 buffer.push(right4bits.toString(16));
                 value = value >> 4;

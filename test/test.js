@@ -1,3 +1,5 @@
+const { IllegalArgumentException } = require('jsexception');
+
 const assert = require('assert/strict');
 
 const { Binary } = require('../index');
@@ -48,6 +50,29 @@ describe('Binary', () => {
             let b2 = Binary.fromBinaryObject(b1);
             assert.equal(b2.toInt32(), b1.toInt32());
             assert.equal(b2.bitWidth, b1.bitWidth);
+        });
+
+        it('Test bit width out of range', () => {
+            try {
+                Binary.fromBinaryString('0', 0);
+                assert.fail();
+            } catch (err) {
+                assert(err instanceof IllegalArgumentException);
+            }
+
+            try {
+                Binary.fromBinaryString('0', 128);
+                assert.fail();
+            } catch (err) {
+                assert(err instanceof IllegalArgumentException);
+            }
+
+            try {
+                Binary.fromHexString('aabbccdd00', 0);
+                assert.fail();
+            } catch (err) {
+                assert(err instanceof IllegalArgumentException);
+            }
         });
     });
 
