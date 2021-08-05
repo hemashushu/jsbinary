@@ -4,7 +4,7 @@ const assert = require('assert/strict');
 
 const { Binary } = require('../index');
 
-describe('Binary', () => {
+describe('Test Binary', () => {
     describe('Test create instance', () => {
         it('fromDecimalString', () => {
             let b1 = Binary.fromDecimalString('123', 8);
@@ -207,14 +207,29 @@ describe('Binary', () => {
         assert(Binary.equal(r2, Binary.fromBinaryString('0010')));
     });
 
-    // TODO::
+    it('Test or()', () => {
+        // TODO::
+    });
 
-    it('Test or()', () => { });
-    it('Test nand()', () => { });
-    it('Test nor()', () => { });
-    it('Test xor()', () => { });
-    it('Test xnor()', () => { });
-    it('Test not()', () => { });
+    it('Test nand()', () => {
+        // TODO::
+    });
+
+    it('Test nor()', () => {
+        // TODO::
+    });
+
+    it('Test xor()', () => {
+        // TODO::
+    });
+
+    it('Test xnor()', () => {
+        // TODO::
+    });
+
+    it('Test not()', () => {
+        // TODO::
+    });
 
     it('Test add32()', () => {
         let b1 = Binary.fromHexString('00112233');

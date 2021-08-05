@@ -72,31 +72,33 @@ for (let idx = 0; idx < wasmLength; idx++) {
 
 let m = new WebAssembly.Module(wasmBytes.buffer);
 let instance = new WebAssembly.Instance(m, importObject);
-let e = instance.exports;
+let wasmInt32 = instance.exports;
 
 // 导出方法
 const Int32 = {
-    equal: e.equal,
-    greaterThan: e.greater_than,
-    greaterThanUnsigned: e.greater_than_unsigned,
-    greaterThanOrEqual: e.greater_than_or_equal,
-    greaterThanOrEqualUnsigned: e.greater_than_or_equal_unsigned,
-    add: e.add,
-    subtract: e.subtract,
-    multiplyLow: e.multiply_low,
-    multiplyHigh: e.multiply_high,
-    multiplyHighUnsigned: e.multiply_high_unsigned,
-    divide: e.divide,
-    divideUnsigned: e.divide_unsigned,
-    remainder: e.remainder_signed,
-    remainderUnsigned: e.remainder_unsigned,
-    and: e.and,
-    or: e.or,
-    xor: e.xor,
-    not: e.not,
-    leftShift: e.left_shift,
-    rightShift: e.right_shift,
-    logicRightShift: e.logic_right_shift
+    equal: wasmInt32.equal,
+    greaterThan: wasmInt32.greater_than,
+    greaterThanUnsigned: wasmInt32.greater_than_unsigned,
+    greaterThanOrEqual: wasmInt32.greater_than_or_equal,
+    greaterThanOrEqualUnsigned: wasmInt32.greater_than_or_equal_unsigned,
+    add: wasmInt32.add,
+    subtract: wasmInt32.subtract,
+
+    multiplyLow: wasmInt32.multiply_low,
+    multiplyHigh: wasmInt32.multiply_high,
+    multiplyHighUnsigned: wasmInt32.multiply_high_unsigned,
+    divide: wasmInt32.divide,
+    divideUnsigned: wasmInt32.divide_unsigned,
+    remainder: wasmInt32.remainder_signed,
+    remainderUnsigned: wasmInt32.remainder_unsigned,
+
+    and: wasmInt32.and,
+    or: wasmInt32.or,
+    xor: wasmInt32.xor,
+    not: wasmInt32.not,
+    leftShift: wasmInt32.left_shift,
+    rightShift: wasmInt32.right_shift,
+    logicRightShift: wasmInt32.logic_right_shift
 };
 
 module.exports = Int32;
